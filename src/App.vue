@@ -1,30 +1,38 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <h1>我是app组件</h1>
+  <h2>{{ name }}</h2>
+  <h2>{{ age }}</h2>
+  <h3>{{ work.type }}</h3>
+  <h3>{{ work.salary }}</h3>
+  <nut-button @click="changeInfo ">tip</nut-button>
 </template>
+<script>
+import { ref } from "vue";
+export default {
+  name:'app',
+  setup() {
+    let name = ref('zhao')
+    let age = ref(18)
+    let work = ref({
+      type:'前端',
+      salary:'30k'
+    })
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+    function changeInfo() {
+      name.value = 'zll'
+      age.value = 20
+      work.value.type = 'ui'
+      console.log(work.value);
+      console.log(age);
+    }
 
-nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
+    return {
+      name,
+      age,
+      work,
+      changeInfo
     }
   }
-}
-</style>
+};
+</script>
+
