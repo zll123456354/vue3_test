@@ -1,25 +1,24 @@
-<!-- <template>
-  <div id="app">
+<template>
+  <div id="home">
     <h1>待办事项</h1>
     <TodoInput :historyData="history" @add="handleAdd" ref="input"></TodoInput>
     <div class="todo-list">
       <TodoItem v-for="(todo, index) in todos" :key="index" :todo="todo" @delete="deleteTodo(index)" />
     </div>
     <div id="chart" style="width: 100%; height: 380px; "></div>
+    <nut-button type="info" @click="$router.push('/completed')">点击查看待办完成情况</nut-button>
     <nut-popup v-model:visible="dialogVisible" position="center">
       <nut-date-picker v-model="selectedTime" type="datetime" :three-dimensional="false" @cancel="cancelAddTodo"
         @confirm="confirmAddTodo"></nut-date-picker>
     </nut-popup>
   </div>
-  <nut-button type="info">点击查看待办完成情况</nut-button>
-
 </template>
 
 <script>
 import { ref, onMounted, watch } from 'vue';
 import * as echarts from 'echarts';
-import TodoItem from './components/todoItem.vue';
-import TodoInput from './components/todoInput.vue';
+import TodoItem from '../components/todoItem';
+import TodoInput from '../components/todoInput';
 import { ElMessageBox, ElMessage } from 'element-plus';
 
 export default {
@@ -52,6 +51,7 @@ export default {
           text: input.value.newTodoText,
           completed: false,
           unfinished: false,
+          createdTime: now,
           dueTime: dueTime,
           timer: setTimeout(() => {
             if (!newTodo.completed) {
@@ -63,9 +63,12 @@ export default {
         };
 
         todos.value.push(newTodo);
-        history.value.unshift({ text: input.value.newTodoText, completed: false }); // 将新待办添加到历史记录最前面
-        if (history.value.length > 10) {
-          history.value.pop(); // 如果超过10条历史数据，删除最后一条
+        const existingIndex = history.value.findIndex(item => item.text === input.value.newTodoText);
+        if (existingIndex === -1) {
+          history.value.unshift({ text:input.value.newTodoText, completed: false });
+          if (history.value.length > 10) {
+            history.value.pop();
+          }
         }
         selectedTime.value = new Date();
         input.value.newTodoText = '';
@@ -89,6 +92,7 @@ export default {
         text: input.value.newTodoText,
         completed: false,
         unfinished: false,
+        createdTime: now,
         dueTime: dueTime,
         timer: setTimeout(() => {
           if (!newTodo.completed) {
@@ -207,21 +211,7 @@ export default {
   }
 }
 </script>
-
 <style>
-body {
-  font-family: Arial, sans-serif;
-}
-
-#app {
-  max-width: 600px;
-  padding: 20px;
-  background: #f7f7f7;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
 h1 {
   text-align: center;
   color: #333;
@@ -270,40 +260,4 @@ h1 {
   padding: 20px;
   border-radius: 10px;
 }
-
-/* :root {
-  --nut-button-primary-background-color: green;
-} */
-</style> -->
-<template>
-  <div id="app">
-    <router-view></router-view>
-  </div>
-</template>
-
-<script>
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'App'
-});
-</script>
-<style>
-body {
-  font-family: Arial, sans-serif;
-}
-
-#app {
-  max-width: 600px;
-  padding: 20px;
-  background: #f7f7f7;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-
-/* :root {
-  --nut-button-primary-background-color: green;
-} */
 </style>
