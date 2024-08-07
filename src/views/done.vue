@@ -2,7 +2,7 @@
   <div class="completed-todos">
     <div class="completed-list">
       <h2>已完成待办事项</h2>
-      <nut-table :columns="columns" :data="data" :bordered="false"></nut-table>
+      <nut-table :columns="columns" :bordered="false" :data="data" striped @sorter="handleSorter"></nut-table>
     </div>
     <div id="chart" class="chart"></div>
     <nut-button type="success" @click="$router.push('/')">点击返回待办事项</nut-button>
@@ -15,8 +15,10 @@ import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
 import { Button, Icon, Table } from '@nutui/nutui';
 
+
 const router = useRouter();
 const completedTodos = ref([]);
+
 const columns = ref([
   {
     title: '事项',
@@ -28,7 +30,11 @@ const columns = ref([
   },
   {
     title: '用时',
-    key: 'calculateDuration'
+    key: 'calculateDuration',
+    align: 'center',
+    sorter: (row1, row2) => {
+      return row1.calculateDuration - row2.calculateDuration
+    }
   }
 ]);
 const data = ref([]);
@@ -66,13 +72,14 @@ const updateChart = () => {
   }
 
   const chart = echarts.init(chartDom);
-  const recentCompleted = completedTodos.value.slice(-10);
+  const recentCompleted = completedTodos.value.slice(-8);
   const categories = recentCompleted.map((todo, index) => `${todo.text}`);
+  console.log(categories);
   const durations = recentCompleted.map(todo => calculateDuration(todo.completedTime, todo.createdTime));
 
   chart.setOption({
     title: {
-      text: '最近 10 个已完成待办用时',
+      text: '最近 8 个已完成待办用时',
       left: 'center'
     },
     tooltip: {
@@ -80,7 +87,10 @@ const updateChart = () => {
     },
     xAxis: {
       type: 'category',
-      data: categories
+      data: categories,
+      axisLabel: {
+        rotate: 45 // 旋转 x 轴标签
+      }
     },
     yAxis: {
       type: 'value'
@@ -105,8 +115,27 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.checkbox-button {
+  display: inline-block;
+  padding: 10px 20px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-button input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-button.selected {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
 .completed-todos {
-  padding: 20px;
 
   .completed-list {
     margin-bottom: 20px;
@@ -121,7 +150,7 @@ onMounted(() => {
     }
 
     h2 {
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
     ul {
@@ -163,7 +192,12 @@ onMounted(() => {
 
   .chart {
     width: 100%;
-    height: 400px;
+    height: 45vh;
+  }
+
+  .nut-table {
+    height: 35vh;
+    overflow-y: auto;
   }
 
 

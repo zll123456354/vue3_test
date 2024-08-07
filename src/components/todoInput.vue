@@ -94,6 +94,7 @@ ul {
 li {
   padding: 8px;
   cursor: pointer;
+  text-align: left;
 }
 
 li:hover {

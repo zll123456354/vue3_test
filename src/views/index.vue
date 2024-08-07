@@ -3,26 +3,41 @@
     <h1>待办事项</h1>
     <TodoInput :historyData="history" @add="handleAdd" ref="input"></TodoInput>
     <div class="todo-list">
-      <TodoItem v-for="(todo, index) in todos" :key="index" :todo="todo" @delete="deleteTodo(index)" />
+      <TodoItem
+        v-for="(todo, index) in reversedTodos"
+        :key="index"
+        :todo="todo"
+        @delete="deleteTodo(index)"
+      />
     </div>
-    <div id="chart" style="width: 100%; height: 380px; "></div>
-    <nut-button type="info" @click="$router.push('/completed')">点击查看待办完成情况</nut-button>
+    <div id="chart" style="width: 100%; height: 380px"></div>
+    <nut-button type="info" @click="$router.push('/completed')"
+      >点击查看待办完成情况</nut-button
+    >
     <nut-popup v-model:visible="dialogVisible" position="center">
-      <nut-date-picker v-model="selectedTime" type="datetime" :three-dimensional="false" @cancel="cancelAddTodo"
-        @confirm="confirmAddTodo"></nut-date-picker>
+      <nut-date-picker
+        v-model="selectedTime"
+        type="datetime"
+        :three-dimensional="false"
+        @cancel="cancelAddTodo"
+        @confirm="confirmAddTodo"
+      ></nut-date-picker>
     </nut-popup>
+    <div class="loginOut" @click="loginOut">
+      <img src="../../src/assets/out.png" alt="" />
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
-import * as echarts from 'echarts';
-import TodoItem from '../components/todoItem';
-import TodoInput from '../components/todoInput';
-import { ElMessageBox, ElMessage } from 'element-plus';
+import { ref, onMounted, watch, computed } from "vue";
+import * as echarts from "echarts";
+import TodoItem from "../components/todoItem";
+import TodoInput from "../components/todoInput";
+import { ElMessageBox, ElMessage } from "element-plus";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
     TodoItem,
     TodoInput,
@@ -32,12 +47,17 @@ export default {
     const todos = ref([]);
     const dialogVisible = ref(false);
     const selectedTime = ref(new Date());
-    const historyData = localStorage.getItem('historyData');
+    const historyData = localStorage.getItem("historyData");
     const history = ref(historyData ? JSON.parse(historyData) : []);
-
+    const reversedTodos = computed(() => todos.value.slice().reverse());
     const handleAdd = (text) => {
       dialogVisible.value = true;
       console.log(history.value);
+    };
+
+    const loginOut = () => {
+      localStorage.removeItem("info");
+      location.reload();
     };
 
     const confirmAddTodo = () => {
@@ -46,7 +66,7 @@ export default {
         // new Date(2030, 3, 30).getTime();
         const now = new Date().getTime();
         const remainingTime = dueTime - now;
-        console.log(remainingTime, '1111111');
+        console.log(remainingTime, "1111111");
         const newTodo = {
           text: input.value.newTodoText,
           completed: false,
@@ -59,26 +79,31 @@ export default {
               updateChart();
               saveTodos();
             }
-          }, remainingTime)
+          }, remainingTime),
         };
 
         todos.value.push(newTodo);
-        const existingIndex = history.value.findIndex(item => item.text === input.value.newTodoText);
+        const existingIndex = history.value.findIndex(
+          (item) => item.text === input.value.newTodoText
+        );
         if (existingIndex === -1) {
-          history.value.unshift({ text:input.value.newTodoText, completed: false });
+          history.value.unshift({
+            text: input.value.newTodoText,
+            completed: false,
+          });
           if (history.value.length > 10) {
             history.value.pop();
           }
         }
         selectedTime.value = new Date();
-        input.value.newTodoText = '';
+        input.value.newTodoText = "";
         dialogVisible.value = false;
         saveTodos();
         updateChart();
       } else {
         ElMessage({
-          message: '请选择有效时间',
-          type: 'warning'
+          message: "请选择有效时间",
+          type: "warning",
         });
       }
     };
@@ -87,7 +112,7 @@ export default {
       const now = new Date().getTime();
       const dueTime = now + 7 * 24 * 60 * 60 * 1000; // 一周后的时间戳
       const remainingTime = dueTime - now;
-      console.log(remainingTime, '1111111');
+      console.log(remainingTime, "1111111");
       const newTodo = {
         text: input.value.newTodoText,
         completed: false,
@@ -100,15 +125,18 @@ export default {
             updateChart();
             saveTodos();
           }
-        }, remainingTime)
+        }, remainingTime),
       };
       todos.value.push(newTodo);
-      history.value.unshift({ text: input.value.newTodoText, completed: false }); // 将新待办添加到历史记录最前面
+      history.value.unshift({
+        text: input.value.newTodoText,
+        completed: false,
+      }); // 将新待办添加到历史记录最前面
       if (history.value.length > 10) {
         history.value.pop(); // 如果超过10条历史数据，删除最后一条
       }
       selectedTime.value = new Date();
-      input.value.newTodoText = '';
+      input.value.newTodoText = "";
       dialogVisible.value = false;
       saveTodos();
       updateChart();
@@ -122,10 +150,12 @@ export default {
     };
 
     const updateChart = () => {
-      const completed = todos.value.filter(todo => todo.completed).length;
-      const uncompleted = todos.value.filter(todo => !todo.completed && !todo.unfinished).length;
-      const unfinished = todos.value.filter(todo => todo.unfinished).length;
-      const chartDom = document.getElementById('chart');
+      const completed = todos.value.filter((todo) => todo.completed).length;
+      const uncompleted = todos.value.filter(
+        (todo) => !todo.completed && !todo.unfinished
+      ).length;
+      const unfinished = todos.value.filter((todo) => todo.unfinished).length;
+      const chartDom = document.getElementById("chart");
 
       if (echarts.getInstanceByDom(chartDom)) {
         echarts.dispose(chartDom);
@@ -134,45 +164,61 @@ export default {
       const chart = echarts.init(chartDom);
       chart.setOption({
         title: {
-          text: '待办事项统计',
-          left: 'center'
+          text: "待办事项统计",
+          left: "center",
+          top: 40,
         },
         tooltip: {
-          trigger: 'item'
+          trigger: "item",
         },
         legend: {
-          orient: 'vertical',
-          left: 'left'
+          show: true,
+          orient: "vertical",
+          left: "left",
+          top: 40,
         },
         series: [
           {
-            name: '待办事项',
-            type: 'pie',
-            radius: '50%',
+            name: "待办事项",
+            type: "pie",
+            radius: "50%",
+            center: ["50%", "60%"],
             data: [
-              { value: completed, name: '已完成', itemStyle: { color: '#42b983' } },
-              { value: uncompleted, name: '未完成', itemStyle: { color: '#ffcc00' } },
-              { value: unfinished, name: '超时', itemStyle: { color: '#ff0000' } }
+              {
+                value: completed,
+                name: "已完成",
+                itemStyle: { color: "#42b983" },
+              },
+              {
+                value: uncompleted,
+                name: "未完成",
+                itemStyle: { color: "#ffcc00" },
+              },
+              {
+                value: unfinished,
+                name: "超时",
+                itemStyle: { color: "#ff0000" },
+              },
             ],
             emphasis: {
               itemStyle: {
                 shadowBlur: 10,
                 shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
+                shadowColor: "rgba(0, 0, 0, 0.5)",
+              },
+            },
+          },
+        ],
       });
     };
 
     const saveTodos = () => {
-      localStorage.setItem('todos', JSON.stringify(todos.value));
+      localStorage.setItem("todos", JSON.stringify(todos.value));
     };
 
     const loadTodos = () => {
-      const savedTodos = JSON.parse(localStorage.getItem('todos')) || [];
-      savedTodos.forEach(todo => {
+      const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+      savedTodos.forEach((todo) => {
         const now = new Date().getTime();
         const remainingTime = todo.dueTime - now;
         if (remainingTime > 0 && !todo.completed) {
@@ -206,15 +252,18 @@ export default {
       deleteTodo,
       history,
       handleAdd,
-      cancelAddTodo
+      cancelAddTodo,
+      loginOut,
+      reversedTodos,
     };
-  }
-}
+  },
+};
 </script>
-<style>
+<style lang="scss">
 h1 {
   text-align: center;
   color: #333;
+  margin-bottom: 40px;
 }
 
 .input-group {
@@ -228,6 +277,17 @@ h1 {
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.loginOut {
+  height: 40px;
+  width: 40px;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  img {
+    width: 100%;
+  }
 }
 
 .input-group button {
